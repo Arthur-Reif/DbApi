@@ -4,6 +4,7 @@ using DbApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260904234043_uptadeAtivo")]
+    partial class uptadeAtivo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,6 +44,7 @@ namespace DbApi.Migrations
                         .HasColumnName("email");
 
                     b.Property<string>("Endereco")
+                        .IsRequired()
                         .HasColumnType("varchar(200)")
                         .HasColumnName("endCli");
 
@@ -51,35 +55,13 @@ namespace DbApi.Migrations
                         .HasColumnName("nomeCli");
 
                     b.Property<string>("Telefone")
+                        .IsRequired()
                         .HasColumnType("varchar(11)")
                         .HasColumnName("telefoneCli");
 
                     b.HasKey("Id");
 
                     b.ToTable("Tb_clientes", (string)null);
-                });
-
-            modelBuilder.Entity("DbApi.Models.Funcionario", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("idFuncionario");
-
-                    b.Property<string>("Endereco")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("enderecoFuncionario");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("nomeFuncionario");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tb_funcionario", (string)null);
                 });
 #pragma warning restore 612, 618
         }

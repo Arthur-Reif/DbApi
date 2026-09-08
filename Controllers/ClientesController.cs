@@ -1,43 +1,85 @@
 using Microsoft.AspNetCore.Mvc;
 using DbApi.Models;
+using System.Net.Http.Headers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace DbApi.Controllers
 {
     [ApiController]
-    [Route("Clientes]")]
+    [Route("clientes")]
     public class ClientesController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult ObterTodos()
+        private AppDbContext _contexto;
+
+        public ClientesController(AppDbContext context)
         {
-             //todo obter todos os clientes registrados no banco de dados
+            _contexto = context;
+        }
 
-            List<Cliente> clientes = new List<Cliente>()
-            {
-                new Cliente()
-                {
-                    Nome = "Vitor", Email = "Vitor@email", Telefone= "746846", Endereco = "rua xpto"
-                },
+        [HttpGet]
+        public async Task<IActionResult> ObterTodosAsync()
+        {
+            //todo obter todos os  clientes  registardos no  banco de dados;
 
-                new Cliente()
-                {
-                    Nome ="Camila", Email = "Camila@gmail.com", Telefone= "195999846", Endereco = "rua abc"
-                },
-
-                new Cliente()
-                {
-                    Nome = "Bruno", Email = "Bruno@email", Telefone= "0090989", Endereco = "rua dfg"
-                }
-            };
-
+            List<Cliente> clientes = await _contexto.Clientes.ToListAsync();
             return Ok(clientes);
+        }
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> ObterPorIdAsync([FromRoute] string id)
+        {
+            //Cliente cliente = await _contexto.Clientes.FindAsync(id);
+            Cliente cliente = await _contexto.Clientes.Where(c => c.Id == id).FirstOrDefaultAsync();
+            return Ok(cliente);
         }
 
         [HttpPost]
-        public IActionResult Criar([FromBody] Cliente cliente)
+        public async Task<IActionResult> CriarAsync([FromBody] Cliente cliente)
         {
-           //todo : salvar cliente no banco de dados
-            return Created();
+            await _contexto.Clientes.AddAsync(cliente);
+            await _contexto.SaveChangesAsync();
+            //todo: salvar o cliente no banco de dados. 
+            return Created("/clientes", cliente);
+
+        }
+        [HttpDelete("{id}")]
+
+        public async Task<IActionResult> DeleteAscync([FromRoute] string id)
+        {
+            Cliente cliente = _contexto.Clientes.Find(id);
+
+            if (cliente == null)
+            {
+                return Ok();
+            }
+
+            _contexto.Clientes.Remove(cliente);
+            await _contexto.SaveChangesAsync();
+            return Ok();
+
+        }
+        [HttpPut ("{id}")]
+
+        public async Task<IActionResult> UpdateAsync([FromRoute]string id, [FromBody]Cliente clienteAtualizado)
+        {
+            var clienteDb = await _contexto.Clientes.FindAsync(id);
+
+            if(clienteDb == null)
+            {
+                return NotFound($"Cliente Id : {id} nao encontrado");
+            }
+
+
+        clienteDb.Update(clienteAtualizado);
+
+            _contexto.Clientes.Update(clienteAtualizado);
+
+            await _contexto.SaveChangesAsync();
+
+            return Ok();
+
+
         }
     }
 }
