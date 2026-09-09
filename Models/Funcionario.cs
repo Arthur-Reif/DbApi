@@ -25,5 +25,13 @@ namespace DbApi.Models
         [Column("EnderecoFuncionario", TypeName = "(varchar300))")]
         public string Endereco { get; set; }
 
+        
+
+
+    public void Update (Funcionario funcionarioAtualizado)
+        {
+            Nome = funcionarioAtualizado.Nome;
+            Endereco = funcionarioAtualizado.Endereco;
+        }
     }
 }    
