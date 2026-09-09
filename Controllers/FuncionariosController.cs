@@ -1,84 +1,70 @@
-
 using DbApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using DbApi.Repositories;
 
 namespace DbApi.Controllers
 {
     [ApiController]
-    [Route("funcionario")]
-    //pode aparecer como api/[controller] esse cenario vai pegar o nome da controler  e remomover a palavra controller
+    [Route("funcionarios")] 
+    //pode aparecer como [controller] esse cenario vai pegar o nome da controller e remover a palavra controller
     public class FuncionariosController : ControllerBase
     {
-        private AppDbContext _context;
+        private FuncionariosRepository _funcionariosRepository; 
 
         public FuncionariosController(AppDbContext context)
         {
-            _context = context;
+            _funcionariosRepository = new FuncionariosRepository(context);
         }
-
-
         [HttpGet]
         public async Task<IActionResult> ObterFuncionariosAsync ()
         {
-            List<Funcionario> funcionarios = await _context.Funcionarios.ToListAsync();
+            List<Funcionario> funcionarios = await _funcionariosRepository.ObterTodosAsync();
             return Ok(funcionarios);
-        }
+        } 
 
         [HttpGet("{id}")]
         public async Task<IActionResult> ObterPorIdAsync([FromRoute] string id)
         {
-            Funcionario func = await  _context.Funcionarios.Where(f => f.Id == id).FirstOrDefaultAsync();
-           //Funcionario func = await  _context.Funcionarios.FindAsync(id); //esse comentado so funciona com primary key ent eh bom saber os dois jeitos
+            Funcionario func = await  _funcionariosRepository.ObterPorIdAsync(id);
             return Ok(func);
         }
+        
 
         [HttpPost]
-        public async Task<IActionResult> InserirFuncionarios([FromBody] Funcionario funcionario)
+        public async Task<IActionResult> InserirFuncionariosAsync([FromBody] Funcionario funcionario)
         {
-           await _context.Funcionarios.AddAsync(funcionario);
-            await _context.SaveChangesAsync(); //tem q por essa merda
+            await _funcionariosRepository.InserirAsync(funcionario);
             return Ok();
-
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete ([FromRoute] string id)
         {
-            Funcionario funcionario = await _context.Funcionarios.FindAsync(id);
+            Funcionario funcionario = await _funcionariosRepository.ObterPorIdAsync(id);
 
             if(funcionario == null)
             {
                 return NoContent();
             }
 
-            _context.Funcionarios.Remove(funcionario);
-            await _context.SaveChangesAsync();
+            await _funcionariosRepository.DeletarAsync(funcionario);
 
             return NoContent();
         }
 
-        public async Task<IActionResult> UpdateAsyncFuncionario([FromRoute] string id , [FromBody] Funcionario funcionarioAtualizado)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] Funcionario funcionarioAtualizado)
         {
-            Funcionario funcionarioDB = await _context.Funcionarios.FindAsync(id);
-
+            Funcionario funcionarioDB = await _funcionariosRepository.ObterPorIdAsync(id);
             if(funcionarioDB == null)
             {
-                return NotFound("Funcionario nao encontrado");
+                return NotFound("Funcionario nõa encontrado!"); 
             }
-
             // funcionarioDB.Nome = funcionarioAtualizado.Nome;
-            // funcionarioDB.Endereco= funcionarioAtualizado.Endereco;
-            //ja fiiz isso na classe funcionario ent n precisa fazer aqui tbm
-
+            // funcionarioDB.Email = funcionarioAtualizado.Email;
             funcionarioDB.Update(funcionarioAtualizado);
-
-            _context.Funcionarios.Update(funcionarioDB);
-            await _context.SaveChangesAsync();
-
-           
-           
-            return Ok();
-        }
+            await _funcionariosRepository.AtualizarAsync(funcionarioDB);
+            return Ok(); 
+        }  
     }
 }
