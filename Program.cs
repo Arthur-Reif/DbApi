@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using DbApi;
+using DbApi.Repositories.Interfaces;
+using DbApi.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -10,6 +12,9 @@ builder.Services.AddControllers();
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options=> options.UseSqlServer(connection));
+
+builder.Services.AddScoped<IClientesRepository, ClientesRepository>(); //Se eu colocasse ClienetesRepositoryMock no lugar de ClientesRepository, iria ser utilizada as coisas dentro do mock, mas como eu coloquei ClientesRepository, vai ser utilizada a classe ClientesRepository que é a que faz a conexão com o banco de dados.
+
 
 var app = builder.Build();
 

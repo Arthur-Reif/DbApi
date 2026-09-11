@@ -5,30 +5,34 @@ using DbApi.Repositories;
 namespace DbApi.Controllers
 {
     [ApiController]
-    [Route("funcionarios")] 
+    [Route("funcionarios")]
     //pode aparecer como [controller] esse cenario vai pegar o nome da controller e remover a palavra controller
     public class FuncionariosController : ControllerBase
     {
-        private FuncionariosRepository _funcionariosRepository; 
+        private FuncionariosRepository _funcionariosRepository;
 
         public FuncionariosController(AppDbContext context)
         {
             _funcionariosRepository = new FuncionariosRepository(context);
         }
         [HttpGet]
-        public async Task<IActionResult> ObterFuncionariosAsync ()
+        public async Task<IActionResult> ObterFuncionariosAsync()
         {
             List<Funcionario> funcionarios = await _funcionariosRepository.ObterTodosAsync();
             return Ok(funcionarios);
-        } 
+        }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}")] //essa forma previni q se alguem colocar null n de Ok
         public async Task<IActionResult> ObterPorIdAsync([FromRoute] string id)
         {
-            Funcionario func = await  _funcionariosRepository.ObterPorIdAsync(id);
+            Funcionario func = await _funcionariosRepository.ObterPorIdAsync(id);
+            if (func == null)
+            {
+                return NotFound("Funcionário não encontrado!");
+            }
             return Ok(func);
-        }
-        
+        } 
+
 
         [HttpPost]
         public async Task<IActionResult> InserirFuncionariosAsync([FromBody] Funcionario funcionario)
@@ -38,11 +42,11 @@ namespace DbApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete ([FromRoute] string id)
+        public async Task<IActionResult> Delete([FromRoute] string id)
         {
             Funcionario funcionario = await _funcionariosRepository.ObterPorIdAsync(id);
 
-            if(funcionario == null)
+            if (funcionario == null)
             {
                 return NoContent();
             }
@@ -56,15 +60,15 @@ namespace DbApi.Controllers
         public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] Funcionario funcionarioAtualizado)
         {
             Funcionario funcionarioDB = await _funcionariosRepository.ObterPorIdAsync(id);
-            if(funcionarioDB == null)
+            if (funcionarioDB == null)
             {
-                return NotFound("Funcionario nõa encontrado!"); 
+                return NotFound("Funcionario nõa encontrado!");
             }
             // funcionarioDB.Nome = funcionarioAtualizado.Nome;
             // funcionarioDB.Email = funcionarioAtualizado.Email;
             funcionarioDB.Update(funcionarioAtualizado);
             await _funcionariosRepository.AtualizarAsync(funcionarioDB);
-            return Ok(); 
-        }  
+            return Ok();
+        }
     }
 }

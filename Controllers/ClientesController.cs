@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using DbApi.Models;
-using System.Net.Http.Headers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
+using DbApi.Repositories.Interfaces;
 
 namespace DbApi.Controllers
 {
@@ -10,11 +8,12 @@ namespace DbApi.Controllers
     [Route("clientes")]
     public class ClientesController : ControllerBase
     {
-        private AppDbContext _contexto;
 
-        public ClientesController(AppDbContext context)
+        private IClientesRepository _clienteRepository;
+
+        public ClientesController(IClientesRepository clienteRepository)
         {
-            _contexto = context;
+            _clienteRepository = clienteRepository;
         }
 
         [HttpGet]
@@ -22,7 +21,7 @@ namespace DbApi.Controllers
         {
             //todo obter todos os  clientes  registardos no  banco de dados;
 
-            List<Cliente> clientes = await _contexto.Clientes.ToListAsync();
+            List<Cliente> clientes = await _clienteRepository.ObterTodosAsync();
             return Ok(clientes);
         }
         [HttpGet]
@@ -30,15 +29,15 @@ namespace DbApi.Controllers
         public async Task<IActionResult> ObterPorIdAsync([FromRoute] string id)
         {
             //Cliente cliente = await _contexto.Clientes.FindAsync(id);
-            Cliente cliente = await _contexto.Clientes.Where(c => c.Id == id).FirstOrDefaultAsync();
+            Cliente cliente = await _clienteRepository.ObterPorIdAsync(id);
             return Ok(cliente);
         }
 
         [HttpPost]
         public async Task<IActionResult> CriarAsync([FromBody] Cliente cliente)
         {
-            await _contexto.Clientes.AddAsync(cliente);
-            await _contexto.SaveChangesAsync();
+            await _clienteRepository.InserirAsync(cliente);
+            // await _contexto.SaveChangesAsync(); COMO ESTAMOS USANDO A REPOSITORY A PARTE DE SALVAR EH PROBLEMA DELA AGR
             //todo: salvar o cliente no banco de dados. 
             return Created("/clientes", cliente);
 
@@ -47,39 +46,35 @@ namespace DbApi.Controllers
 
         public async Task<IActionResult> DeleteAscync([FromRoute] string id)
         {
-            Cliente cliente = _contexto.Clientes.Find(id);
+            Cliente cliente = await _clienteRepository.ObterPorIdAsync(id);
 
             if (cliente == null)
             {
                 return Ok();
             }
 
-            _contexto.Clientes.Remove(cliente);
-            await _contexto.SaveChangesAsync();
+            await _clienteRepository.Deletar(cliente);
             return Ok();
 
         }
-        [HttpPut ("{id}")]
+        [HttpPut("{id}")]
 
-        public async Task<IActionResult> UpdateAsync([FromRoute]string id, [FromBody]Cliente clienteAtualizado)
+        public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] Cliente clienteAtualizado)
         {
-            var clienteDb = await _contexto.Clientes.FindAsync(id);
+            var clienteDb = await _clienteRepository.ObterPorIdAsync(id);
 
-            if(clienteDb == null)
+            if (clienteDb == null)
             {
                 return NotFound($"Cliente Id : {id} nao encontrado");
             }
 
 
-        clienteDb.Update(clienteAtualizado);
+            clienteDb.Update(clienteAtualizado);
 
-            _contexto.Clientes.Update(clienteAtualizado);
-
-            await _contexto.SaveChangesAsync();
-
+            await _clienteRepository.Atualizar(clienteDb);
             return Ok();
 
 
         }
     }
-}
+} // codigo ta errado n esta q nem o do vitao
